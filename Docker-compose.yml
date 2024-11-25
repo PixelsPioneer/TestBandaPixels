@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: db
+    ports:
+      - "3307:3306"
+    networks:
+      - bridge
+    environment:
+      MYSQL_ROOT_PASSWORD: Andriy.044
+      MYSQL_DATABASE: newshema
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
+
+  backend:
+    build:
+      context: .
+    ports:
+      - "5000:5000"
+    networks:
+      - bridge
+    volumes:
+      - .:/app
+    environment:
+      DB_HOST: host.docker.internal
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: Andriy.044
+      DB_NAME: newschema
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - bridge
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
+
+networks:
+  bridge:
+    driver: bridge
+
+volumes:
+  db_data:
